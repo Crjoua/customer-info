@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog logicalFilePath="db.changelog-master.xml" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="1" author="MReis">
+        <createTable tableName="CUSTOMER">
+            <column name="ID" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="NAME" type="VARCHAR(10)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="UN_NAME"/>
+            </column>
+            <column name="ADDRESS" type="VARCHAR(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="DISTRICT" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="MReis">
+        <createTable tableName="TELEPHONE">
+            <column name="ID" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="NUMBER" type="VARCHAR(12)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="CUSTOMER_ID" type="BIGINT">
+                <constraints foreignKeyName="FK_CUSTOMER" references="CUSTOMER(ID)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+</databaseChangeLog>
