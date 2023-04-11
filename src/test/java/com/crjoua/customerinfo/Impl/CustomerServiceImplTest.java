@@ -1,9 +1,12 @@
 package com.crjoua.customerinfo.Impl;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,10 @@ import com.crjoua.customerinfo.repository.TelephoneRepository;
 
 import jakarta.transaction.Transactional;
 
+/**
+ * Teste de integração para salvar cliente
+ * os testes englobam os casos de erro e de sucesso
+ */
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
@@ -30,28 +37,57 @@ public class CustomerServiceImplTest {
     @Autowired 
     private TelephoneRepository telephoneRepository;
     
+    /**
+     * limpa as tabelas antes de cada teste
+     */
+    @Before
+    public void cleanUp() {
+        telephoneRepository.deleteAll();
+        customerRepository.deleteAll();
+    }
+
+    /**
+     * nome ""
+     */
     @Test(expected = IllegalArgumentException.class)
     public void testCreateWithNameBlank() {
         this.customerService.create("", "bla", "bla", new ArrayList<>());
     }
 
+    /**
+     * nome null
+     */
     @Test(expected = IllegalArgumentException.class)
     public void testCreateWithNameNull() {
         this.customerService.create(null, "bla","bla", new ArrayList<>());
     }
 
+    /**
+     * nome maior que 10 chars
+     */
     @Test(expected = IllegalArgumentException.class)
     public void testCreateWithNameTooBig() {
         this.customerService.create("nametoobighere", "bla","bla", new ArrayList<>());
     }
 
-    @Test(expected = RuntimeException.class)
+    /**
+     * Erro ao criar cliente com nome já existente
+     */
+    @Test
     public void testCreateWithNameAlreadyExists() {
         this.customerService.create("name", "bla","bla", new ArrayList<>());
         customerRepository.flush();
-        this.customerService.create("name", "bla1","bla2", new ArrayList<>());
+        try {
+            this.customerService.create("name", "bla1","bla2", new ArrayList<>());
+            fail();
+        } catch (RuntimeException e) {
+            // empty block
+        }
     }
 
+    /**
+     * cria um cliente com um numero de telefone valido e checa se ele está no banco com os valores corretos
+     */
     @Test
     public void testCreateWithNameAndOneTelephone() {
         List<String> tels = new ArrayList<>();
@@ -73,8 +109,10 @@ public class CustomerServiceImplTest {
         Assert.assertEquals("name", telCreated.getCustomer().getName());
     }
 
-    //
-    @Test(expected = RuntimeException.class)
+    /**
+     * Erro ao tentar criar um outro cliente com um telefone que já está cadastrado
+     */
+    @Test
     public void testCreateWithOtherWithSameTelephone() {
         List<String> tels = new ArrayList<>();
         tels.add("12 999999999");
@@ -93,8 +131,13 @@ public class CustomerServiceImplTest {
         Telephone telCreated = telsFound.get(0);
         Assert.assertEquals("12 999999999", telCreated.getNumber());
 
-        //trow
-        this.customerService.create("other", "address","district", tels);
+        try {
+            this.customerService.create("other", "address","district", tels);
+            fail();
+        } catch (RuntimeException e) {
+            // empty block
+        }
+        
     }
 
     /** invalid pattern*/
